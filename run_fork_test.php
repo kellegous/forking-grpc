@@ -6,7 +6,6 @@ function issue_rpc(
     string $host,
     array $items
 ) : array {
-    printf("%s\n", __FUNCTION__);
     $client = new Pkg\MaffClient(
         $host,
         ['credentials' => Grpc\ChannelCredentials::createInsecure()]
@@ -14,13 +13,7 @@ function issue_rpc(
 
     $req = new \Pkg\ProductReq();
     $req->setItems($items);
-    printf("sending rpc\n");
     list ($res, $data) = $client->GetProduct($req)->wait();
-    printf("sent rpc\n");
-
-    // if (!$res) {
-    //     throw new Exception(var_export($data, true));
-    // }
 
     return [
         'product' => $res->getProduct(),
@@ -30,7 +23,7 @@ function issue_rpc(
 }
 
 function send_json(array $data) {
-    printf("%s\n", json_encode($data));
+    printf("%s\n", json_encode($data, JSON_PRETTY_PRINT));
 }
 
 $rpc_host = 'localhost:9090';
@@ -38,24 +31,27 @@ $should_fork = true;
 $responses = [];
 $items = [10, 20];
 
+printf(
+    "Test test issues a rpc call from the parent process, then\n" .
+    "forks and issues another rpc from the child process. The\n" .
+    "parent waits on the child to terminate. The test should\n" .
+    "print a single JSON message and then quit properly.\n"
+);
+
 if ($should_fork) {
     $from_parent = issue_rpc($rpc_host, $items);
     $pid = pcntl_fork();
     if ($pid == -1) {
         die('unable to forkk');
     } elseif ($pid) {
-        // $from_parent_after_fork = issue_rpc($rpc_host, $items);
-        // send_json($from_parent_after_fork);
+        // send_json(issue_rpc($rpc_host, $items));
         $status = null;
         pcntl_waitpid($pid, $status);
-        printf("parent is done\n");
     } else {
-        printf("child: %s\n", getmypid());
         send_json([
             'from_parent' => $from_parent,
             'from_child' => issue_rpc($rpc_host, $items),
         ]);
-        printf("child is done\n");
     }
 } else {
     send_json(issue_rpc($rpc_host, $items));
