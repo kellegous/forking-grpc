@@ -1,0 +1,35 @@
+#!/usr/bin/python2.7
+
+import json
+import os
+import subprocess
+import sys
+
+import lib
+
+def StartShell(root, image_name):
+    return subprocess.call([
+        'docker',
+        'run',
+        '-ti',
+        '--rm',
+        '-v', "{}:/app".format(root),
+        '-p', '9090:9090',
+        '-p', '8080:8080',
+        image_name,
+        '/bin/bash'], cwd=root) == 0
+
+def main():
+    root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..'))
+
+    image_name = 'forking_grpc'
+    if not lib.ImageExists(image_name):
+        if not lib.BuildImage(image_name, os.path.join(root, 'script/Dockerfile'), root):
+            lib.Boom("could not build image {0}".format(image_name))
+
+    if not StartShell(root, image_name):
+        lib.Boom("could not start shell")
+
+if __name__ == '__main__':
+    sys.exit(main())

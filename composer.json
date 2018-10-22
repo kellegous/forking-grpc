@@ -1,0 +1,20 @@
+{
+    "name": "rsg/maff",
+    "description": "Maff",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kelly Norton",
+            "email": "knorton@rsglab.com"
+        }
+    ],
+    "require": {
+        "grpc/grpc": "^1.15"
+    },
+    "autoload": {
+        "psr-4": {
+            "" : "php"
+        }
+    }
+}

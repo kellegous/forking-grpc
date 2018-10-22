@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package pkg;
+
+service Maff {
+    rpc GetProduct(ProductReq) returns (ProductRes);
+}
+
+message ProductReq {
+    repeated int64 items = 1;
+}
+
+message ProductRes {
+    int64 product = 1;
+    int64 duration = 2;
+}

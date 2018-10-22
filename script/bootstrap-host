@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import subprocess
+import sys
+
+import lib
+
+def CloneGRPC(root):
+    return subprocess.call([
+        'git',
+        'clone',
+        'https://github.com/grpc/grpc.git'],
+        cwd=root) == 0
+
+def GetPHPExtensionDir():
+    p = subprocess.Popen(
+        ['php-config', '--extension-dir'],
+        stdout=subprocess.PIPE)
+    out, _ = p.communicate()
+    return out.decode('utf8').strip()
+
+def EnsureGRPC(root, force):
+    src_dir = os.path.join(root, 'grpc')
+    was_cloned = False
+    if not os.path.exists(src_dir):
+        if not CloneGRPC(root):
+            return False
+        was_cloned = True
+    if was_cloned or force:
+        if subprocess.call([
+            'git',
+            'submodule',
+            'update',
+            '--init']) != 0:
+            return False
+
+    # has libgrpc been built?
+    if force or not os.path.exists('/usr/local/lib/libgrpc.so'):
+        if subprocess.call(
+            ['make', 'GRPC_ENABLE_FORK_SUPPORT=1'],
+            cwd=os.path.join(root, 'grpc')) != 0:
+            return False
+        if subprocess.call(
+            ['make', 'install'],
+            cwd=os.path.join(root, 'grpc')) != 0:
+            return False
+
+    # has the php extension been built?
+    ext_path = os.path.join(GetPHPExtensionDir(), 'grpc.so')
+    if force or not os.path.exists(ext_path):
+        src_root = os.path.join(root, 'grpc/src/php/ext/grpc')
+        if subprocess.call(
+            ['phpize'],
+            cwd = src_root) != 0:
+            return False
+        if subprocess.call(
+            ['./configure'],
+            cwd = src_root) != 0:
+            return False
+        if subprocess.call(
+            ['make'],
+            cwd=src_root) != 0:
+            return False
+        if subprocess.call(
+            ['make', 'install'],
+            cwd=src_root) != 0:
+            return False
+
+    return True
+
+def main():
+    root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..'))
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--force',
+        action='store_true',
+        help='')
+    args = parser.parse_args()
+
+    if not EnsureGRPC(root, args.force):
+        lib.Boom('cannot clone and build grpc')
+    
+    server = subprocess.Popen(
+        ['bin/be'],
+        cwd=root)
+    try:
+        return subprocess.call(
+            ['php', 'run_fork_test.php'],
+            cwd=root)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.kill()
+
+if __name__ == '__main__':
+    sys.exit(main())
