@@ -24,5 +24,5 @@ php/Pkg/MaffClient.php: maff.proto
 		--plugin=protoc-gen-grpc=grpc/bins/opt/grpc_php_plugin \
 		maff.proto
 
-run: bin/be bin/fe
-	etc/run-all
+test: bin/be php/Pkg/MaffClient.php
+	script/run-test
