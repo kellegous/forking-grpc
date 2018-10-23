@@ -10,13 +10,18 @@ def main():
     root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..'))
 
+    env = os.environ
+    env.update({
+        'GRPC_ENABLE_FORK_SUPPORT' : 'true',
+    })
+
     server = subprocess.Popen(
         ['bin/be'],
         cwd=root)
     try:
         return subprocess.call(
             ['php', 'run_fork_test.php'],
-            cwd=root)
+            env=env, cwd=root)
     except KeyboardInterrupt:
         pass
     finally:
