@@ -16,6 +16,7 @@ def StartShell(root, image_name):
         '-v', "{}:/app".format(root),
         '-p', '9090:9090',
         '-p', '8080:8080',
+        '--privileged',
         image_name,
         '/bin/bash'], cwd=root) == 0
 

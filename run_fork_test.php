@@ -32,7 +32,7 @@ $responses = [];
 $items = [10, 20];
 
 printf(
-    "Test test issues a rpc call from the parent process, then\n" .
+    "This test issues a rpc call from the parent process, then\n" .
     "forks and issues another rpc from the child process. The\n" .
     "parent waits on the child to terminate. The test should\n" .
     "print a single JSON message and then quit properly.\n"

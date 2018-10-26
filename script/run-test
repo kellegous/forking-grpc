@@ -13,6 +13,8 @@ def main():
     env = os.environ
     env.update({
         'GRPC_ENABLE_FORK_SUPPORT' : 'true',
+        'GRPC_TRACE': 'api',
+        'GRPC_VERBOSITY': 'DEBUG',
     })
 
     server = subprocess.Popen(
@@ -20,6 +22,7 @@ def main():
         cwd=root)
     try:
         return subprocess.call(
+            # ['strace', '-f', 'php', 'run_fork_test.php'],
             ['php', 'run_fork_test.php'],
             env=env, cwd=root)
     except KeyboardInterrupt:

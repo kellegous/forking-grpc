@@ -1,6 +1,6 @@
 FROM ubuntu:xenial
 RUN apt-get update \
-    && apt-get install -y php-dev php-pear phpunit vim unzip build-essential python3 git gdb \
+    && apt-get install -y php-dev php-pear phpunit vim unzip build-essential python3 git gdb strace \
     && pecl install protobuf \
     && curl -OL https://github.com/google/protobuf/releases/download/v3.6.1/protoc-3.6.1-linux-x86_64.zip \	
   	&& unzip protoc-3.6.1-linux-x86_64.zip -d /usr/local \	
